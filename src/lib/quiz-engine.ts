@@ -86,6 +86,44 @@ export const buildReport = ({
 }: BuildReportInput) => {
   const summary = getLevelSummary(level);
   const recommendations = getRecommendations(level);
+  const tagStats = new Map<string, { sum: number; count: number }>();
+
+  questionsUsed.forEach((question, index) => {
+    const value = answers[index] ?? 0;
+    question.tags.forEach((tag) => {
+      const current = tagStats.get(tag) ?? { sum: 0, count: 0 };
+      tagStats.set(tag, {
+        sum: current.sum + value,
+        count: current.count + 1,
+      });
+    });
+  });
+
+  const rankedTags = Array.from(tagStats.entries())
+    .map(([tag, stat]) => ({ tag, avg: stat.sum / stat.count }))
+    .sort((a, b) => b.avg - a.avg);
+
+  const coldReading = [
+    "Você tende a manter a mente ativa mesmo quando o ambiente está calmo.",
+    "Pequenos imprevistos costumam reverberar mais tempo do que o esperado.",
+    "Existe um padrão de antecipação que aparece em decisões do dia a dia.",
+  ];
+
+  if (rankedTags[0]?.tag === "sono") {
+    coldReading.push(
+      "Seu descanso não desliga totalmente o estado de alerta interno."
+    );
+  }
+  if (rankedTags[0]?.tag === "controle") {
+    coldReading.push(
+      "Quando algo foge do plano, a necessidade de controle aumenta."
+    );
+  }
+  if (rankedTags[0]?.tag === "social") {
+    coldReading.push(
+      "Situações sociais podem exigir mais preparo do que o normal."
+    );
+  }
   const detailLines = questionsUsed.map((question, index) => {
     const value = answers[index] ?? 0;
     return `${index + 1}. ${question.text} -> ${value}/4`;
@@ -94,14 +132,19 @@ export const buildReport = ({
   return [
     `Relatório personalizado - ${quiz.title}`,
     `Nome: ${name}`,
-    `Pontuação total: ${score}`,
-    `Nível identificado: ${getLevelLabel(level)}`,
     "",
-    "Resumo:",
+    "Síntese:",
     summary,
+    "",
+    "Observações gerais:",
+    ...coldReading.map((item) => `- ${item}`),
     "",
     "Recomendações iniciais:",
     ...recommendations.map((item) => `- ${item}`),
+    "",
+    "Direção sugerida:",
+    "- Um plano guiado ajuda a reduzir picos e criar previsibilidade diária.",
+    "- Materiais estruturados e passo a passo aceleram a estabilização.",
     "",
     "Detalhamento das respostas:",
     ...detailLines,

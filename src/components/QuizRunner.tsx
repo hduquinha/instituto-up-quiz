@@ -83,16 +83,32 @@ export default function QuizRunner({ quiz }: Props) {
 
   const pickNextQuestion = () => {
     const usedIds = new Set(flow.map((item) => item.id));
-    const avgScore = answeredCount > 0 ? score / answeredCount : 0;
-    const targetSegment = avgScore <= 1.4
-      ? "sutil"
-      : avgScore <= 2.6
-        ? "moderado"
-        : "intenso";
+    const tagStats = new Map<string, { sum: number; count: number }>();
 
+    flow.forEach((item) => {
+      const value = answers[item.id];
+      if (value === undefined || value < 0) return;
+      item.tags.forEach((tag) => {
+        const current = tagStats.get(tag) ?? { sum: 0, count: 0 };
+        tagStats.set(tag, {
+          sum: current.sum + value,
+          count: current.count + 1,
+        });
+      });
+    });
+
+    const rankedTags = Array.from(tagStats.entries())
+      .map(([tag, stat]) => ({ tag, avg: stat.sum / stat.count }))
+      .sort((a, b) => b.avg - a.avg);
+
+    const preferredTags = rankedTags.slice(0, 2).map((item) => item.tag);
     const primaryPool = quiz.questionPool.filter(
-      (item) => item.segment === targetSegment && !usedIds.has(item.id)
+      (item) =>
+        !usedIds.has(item.id) &&
+        (preferredTags.length === 0 ||
+          item.tags.some((tag) => preferredTags.includes(tag)))
     );
+
     const fallbackPool = quiz.questionPool.filter(
       (item) => !usedIds.has(item.id)
     );

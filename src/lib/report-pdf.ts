@@ -10,43 +10,52 @@ type ReportPdfInput = {
   name: string;
   quizTitle: string;
   score: number;
-  levelLabel: string;
-  createdAt: Date;
   responses: ReportResponse[];
   questions: QuizQuestion[];
 };
 
-const getColdSummary = (score: number) => {
-  if (score <= 12) return "Leitura estável com variações pontuais.";
-  if (score <= 24) return "Leitura moderada com picos previsíveis.";
-  if (score <= 36) return "Leitura elevada com impacto frequente.";
-  return "Leitura crítica com impacto recorrente.";
+const getSummary = (score: number) => {
+  if (score <= 12) return "Padrão geral estável com variações pontuais.";
+  if (score <= 24) return "Padrão geral moderado com picos previsíveis.";
+  if (score <= 36) return "Padrão geral elevado com impacto frequente.";
+  return "Padrão geral intenso com impacto recorrente.";
 };
 
-const buildInsights = (score: number) => {
-  if (score <= 12)
-    return [
-      "Ritmo mental tende a estabilizar rápido após estímulos.",
-      "Ruído interno pontual, sem padrão contínuo.",
-      "Rotina atual sustenta equilíbrio." 
-    ];
-  if (score <= 24)
-    return [
-      "Oscilações aparecem em períodos de demanda.",
-      "Há sinais de sobrecarga em ciclos curtos.",
-      "Ajustes simples podem reduzir picos." 
-    ];
-  if (score <= 36)
-    return [
-      "Picos de alerta se repetem com frequência.",
-      "Há tendência de antecipação mental constante.",
-      "A rotina atual amplia o estado de alerta." 
-    ];
-  return [
-    "O sistema permanece em alerta por longos períodos.",
-    "Rotina não está compensando a carga interna.",
-    "Intervenção imediata é recomendada." 
+const buildColdReading = (score: number, questions: QuizQuestion[], responses: ReportResponse[]) => {
+  const tagStats = new Map<string, { sum: number; count: number }>();
+  responses.forEach((response, index) => {
+    const question = questions[index];
+    question.tags.forEach((tag) => {
+      const current = tagStats.get(tag) ?? { sum: 0, count: 0 };
+      tagStats.set(tag, { sum: current.sum + response.value, count: current.count + 1 });
+    });
+  });
+
+  const rankedTags = Array.from(tagStats.entries())
+    .map(([tag, stat]) => ({ tag, avg: stat.sum / stat.count }))
+    .sort((a, b) => b.avg - a.avg);
+
+  const statements = [
+    "Você tende a manter a mente ativa mesmo quando o ambiente está calmo.",
+    "Pequenos imprevistos costumam reverberar mais tempo do que o esperado.",
+    "Existe um padrão de antecipação que aparece em decisões do dia a dia.",
   ];
+
+  if (rankedTags[0]?.tag === "sono") {
+    statements.push("O descanso nem sempre reduz completamente a carga interna.");
+  }
+  if (rankedTags[0]?.tag === "controle") {
+    statements.push("A necessidade de controle aumenta quando algo foge do plano.");
+  }
+  if (rankedTags[0]?.tag === "social") {
+    statements.push("Interações sociais podem exigir preparo acima do normal.");
+  }
+
+  if (score >= 24) {
+    statements.push("A consistência de rotina tem impacto direto no seu equilíbrio.");
+  }
+
+  return statements;
 };
 
 const drawBar = (
@@ -169,24 +178,14 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
     width - margin * 2,
     fontRegular,
     10,
-    14
-  );
-  cursorY = drawWrappedText(
-    page,
-    `Data: ${input.createdAt.toLocaleString("pt-BR")}`,
-    margin,
-    cursorY,
-    width - margin * 2,
-    fontRegular,
-    10,
     18
   );
 
   ensureSpace(80);
-  drawSectionTitle("Leitura fria");
+  drawSectionTitle("Síntese");
   cursorY = drawWrappedText(
     page,
-    getColdSummary(input.score),
+    getSummary(input.score),
     margin,
     cursorY,
     width - margin * 2,
@@ -194,21 +193,10 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
     11,
     16
   );
-  cursorY = drawWrappedText(
-    page,
-    `Classificação interna: ${input.levelLabel}`,
-    margin,
-    cursorY,
-    width - margin * 2,
-    fontRegular,
-    10,
-    18,
-    rgb(0.06, 0.09, 0.16)
-  );
 
   ensureSpace(80);
-  drawSectionTitle("Sinais observados");
-  buildInsights(input.score).forEach((item) => {
+  drawSectionTitle("Observações gerais");
+  buildColdReading(input.score, input.questions, input.responses).forEach((item) => {
     cursorY = drawWrappedText(
       page,
       `• ${item}`,
@@ -242,6 +230,18 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
     cursorY -= 20;
   });
 
+  ensureSpace(40);
+  drawSectionTitle("Direção sugerida");
+  cursorY = drawWrappedText(
+    page,
+    "Planos guiados e materiais estruturados costumam reduzir picos e estabilizar a rotina. Se deseja acelerar resultados, priorize um passo a passo com foco em ansiedade.",
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    10,
+    16
+  );
   ensureSpace(40);
   cursorY = drawWrappedText(
     page,
