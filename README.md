@@ -15,6 +15,7 @@ Aplicação de quiz gamificado com relatório personalizado, captura de contato 
 
 ```
 DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/defaultdb?sslmode=require
+DATABASE_CA_CERT=
 ADMIN_PASSWORD=defina-uma-senha-forte
 ```
 

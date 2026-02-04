@@ -6,13 +6,25 @@ type GlobalWithPool = typeof globalThis & {
 
 const globalForPool = globalThis as GlobalWithPool;
 
+const buildSslConfig = () => {
+  if (!process.env.DATABASE_URL) return undefined;
+
+  if (process.env.DATABASE_CA_CERT) {
+    return { ca: process.env.DATABASE_CA_CERT };
+  }
+
+  if (process.env.DATABASE_URL.includes("sslmode=require")) {
+    return { rejectUnauthorized: false };
+  }
+
+  return undefined;
+};
+
 export const pool =
   globalForPool.pgPool ??
   new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL?.includes("sslmode=require")
-      ? { rejectUnauthorized: false }
-      : undefined,
+    ssl: buildSslConfig(),
   });
 
 if (process.env.NODE_ENV !== "production") {
