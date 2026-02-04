@@ -59,7 +59,7 @@ export default function AdminPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `relatorio-${name || "quiz"}.txt`;
+      link.download = `relatorio-${name || "quiz"}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (downloadError) {
