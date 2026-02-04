@@ -10,11 +10,11 @@ import {
 } from "@/lib/quiz-engine";
 
 const insights = [
-  "Padrão discreto identificado.",
-  "Sinal pontual observado.",
-  "Padrão consistente detectado.",
-  "Sinal elevado nesta área.",
-  "Sinal crítico nesta área.",
+  "Leitura registrada.",
+  "Leitura registrada.",
+  "Leitura registrada.",
+  "Leitura registrada.",
+  "Leitura registrada.",
 ];
 
 type Props = {
@@ -69,25 +69,9 @@ export default function QuizRunner({ quiz }: Props) {
 
   const momentLabel = useMemo(() => {
     if (answeredCount === 0) return "Início";
-    if (partialScore <= answeredCount * 1.2) return "Leitura estável";
-    if (partialScore <= answeredCount * 2.4) return "Leitura moderada";
-    if (partialScore <= answeredCount * 3.2) return "Leitura elevada";
-    return "Leitura crítica";
-  }, [answeredCount, partialScore]);
-
-  const routeLabel = useMemo(() => {
-    if (answeredCount === 0) return "Rota Alfa";
-    if (partialScore <= answeredCount * 1.2) return "Rota Alfa";
-    if (partialScore <= answeredCount * 2.4) return "Rota Beta";
-    if (partialScore <= answeredCount * 3.2) return "Rota Gama";
-    return "Rota Delta";
-  }, [answeredCount, partialScore]);
-
-  const unlockedInsight = useMemo(() => {
-    if (answeredCount < 3) return "Primeiro padrão em mapeamento.";
-    if (answeredCount < 6) return "Zona de leitura estabilizada.";
-    if (answeredCount < 9) return "Matriz de hábitos em consolidação.";
-    return "Perfil quase fechado. Ajustes finais.";
+    if (answeredCount < 4) return "Mapa inicial";
+    if (answeredCount < 8) return "Mapa em formação";
+    return "Mapa avançado";
   }, [answeredCount]);
 
   const handleSelect = (value: number) => {
@@ -204,30 +188,33 @@ export default function QuizRunner({ quiz }: Props) {
     return (
       <div className="rounded-3xl bg-white p-8 shadow-xl">
         <h2 className="text-2xl font-semibold text-slate-900">
-          Resultado preliminar
+          Relatório reservado
         </h2>
-        <p className="mt-2 text-slate-600">{getLevelSummary(level)}</p>
+        <p className="mt-2 text-slate-600">
+          Seu resultado completo está pronto, mas só é liberado com o contato.
+        </p>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-500">
-            Índice composto
-          </p>
-          <div className="mt-2 text-3xl font-semibold text-slate-900">
-            {score} / {totalQuestions * 4}
+        <div className="relative mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-6">
+          <div className="space-y-3 blur-sm">
+            <div className="h-6 w-40 rounded-full bg-slate-200" />
+            <div className="h-3 w-full rounded-full bg-slate-200" />
+            <div className="h-3 w-5/6 rounded-full bg-slate-200" />
+            <div className="h-3 w-4/6 rounded-full bg-slate-200" />
+            <div className="h-3 w-3/6 rounded-full bg-slate-200" />
           </div>
-          <p className="mt-1 text-slate-600">
-            Classificação interna:{" "}
-            <span className="font-semibold">{getLevelLabel(level)}</span>
-          </p>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white">
+              Relatório bloqueado
+            </div>
+          </div>
         </div>
 
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-slate-900">
-            Receba o relatório completo
+            Desbloquear relatório
           </h3>
           <p className="mt-1 text-slate-600">
-            Informe seus dados para receber o relatório personalizado com
-            recomendações.
+            Informe seu contato para liberar o relatório completo no WhatsApp.
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -285,12 +272,7 @@ export default function QuizRunner({ quiz }: Props) {
         <span>
           Pergunta {currentIndex + 1} de {totalQuestions}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-            {routeLabel}
-          </span>
-          <span>{momentLabel}</span>
-        </div>
+        <span>{momentLabel}</span>
       </div>
 
       <div className="mt-4 h-2 w-full rounded-full bg-slate-100">
@@ -304,36 +286,16 @@ export default function QuizRunner({ quiz }: Props) {
         {question.text}
       </h2>
 
-      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs uppercase tracking-[0.3em] text-slate-500">
-        Insight desbloqueado: <span className="ml-2 text-slate-700">{unlockedInsight}</span>
-      </div>
-
-      <div className="mt-4 flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-slate-400">
-        <span>Mapa</span>
-        <div className="flex flex-1 items-center gap-2">
-          {["Entrada", "Leitura", "Filtro", "Conclusão"].map((step, index) => {
-            const active = currentIndex >= index * 3;
-            return (
-              <div key={step} className="flex flex-1 items-center gap-2">
-                <div
-                  className={`h-2 w-2 rounded-full ${
-                    active ? "bg-slate-900" : "bg-slate-300"
-                  }`}
-                />
-                <div
-                  className={`hidden text-[10px] sm:block ${
-                    active ? "text-slate-600" : "text-slate-400"
-                  }`}
-                >
-                  {step}
-                </div>
-                {index < 3 ? (
-                  <div className="h-px flex-1 bg-slate-200" />
-                ) : null}
-              </div>
-            );
-          })}
+      <div className="mt-4 flex items-center gap-3">
+        <div className="h-1 flex-1 rounded-full bg-slate-100">
+          <div
+            className="h-1 rounded-full bg-slate-900 transition-all"
+            style={{ width: `${progress}%` }}
+          />
         </div>
+        <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
+          {progress.toFixed(0)}%
+        </span>
       </div>
 
       <div className="mt-6 grid gap-3">
