@@ -73,7 +73,7 @@ export async function GET(request: Request, { params }: Params) {
     questions,
   });
 
-  return new NextResponse(pdf, {
+  return new Response(pdf, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=relatorio-${
