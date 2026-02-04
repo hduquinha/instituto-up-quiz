@@ -1,5 +1,4 @@
-import PDFDocument from "pdfkit";
-import type PDFKit from "pdfkit";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { QuizQuestion } from "@/lib/quizzes";
 
 export type ReportResponse = {
@@ -51,89 +50,211 @@ const buildInsights = (score: number) => {
 };
 
 const drawBar = (
-  doc: PDFKit.PDFDocument,
+  page: any,
   x: number,
   y: number,
   value: number
 ) => {
-  const width = 140;
+  const width = 180;
   const height = 8;
   const filled = (value / 4) * width;
-  doc.roundedRect(x, y, width, height, 4).fill("#E5E7EB");
-  doc.roundedRect(x, y, filled, height, 4).fill("#111827");
+  page.drawRectangle({ x, y, width, height, color: rgb(0.9, 0.91, 0.93) });
+  page.drawRectangle({ x, y, width: filled, height, color: rgb(0.06, 0.09, 0.16) });
 };
 
-export const generateReportPdf = (input: ReportPdfInput) => {
-  const doc = new PDFDocument({ margin: 48 });
-  const chunks: Buffer[] = [];
+const drawWrappedText = (
+  page: any,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  font: any,
+  fontSize: number,
+  lineHeight: number,
+  color = rgb(0.2, 0.24, 0.31)
+) => {
+  const words = text.split(" ");
+  let line = "";
+  let cursorY = y;
 
-  doc.on("data", (chunk) => chunks.push(chunk));
+  words.forEach((word, index) => {
+    const testLine = line ? `${line} ${word}` : word;
+    const width = font.widthOfTextAtSize(testLine, fontSize);
+    if (width > maxWidth && line) {
+      page.drawText(line, { x, y: cursorY, size: fontSize, font, color });
+      cursorY -= lineHeight;
+      line = word;
+    } else {
+      line = testLine;
+    }
 
-  doc.fontSize(20).fillColor("#0F172A").text("Relatório reservado", {
-    align: "left",
+    if (index === words.length - 1) {
+      page.drawText(line, { x, y: cursorY, size: fontSize, font, color });
+      cursorY -= lineHeight;
+    }
   });
 
-  doc.moveDown(0.5);
-  doc
-    .fontSize(12)
-    .fillColor("#334155")
-    .text("Documento confidencial gerado automaticamente.");
+  return cursorY;
+};
 
-  doc.moveDown(1.5);
-  doc.fontSize(14).fillColor("#0F172A").text("Identificação");
-  doc
-    .fontSize(11)
-    .fillColor("#475569")
-    .text(`Nome: ${input.name}`)
-    .text(`Quiz: ${input.quizTitle}`)
-    .text(`Data: ${input.createdAt.toLocaleString("pt-BR")}`);
+export const generateReportPdf = async (input: ReportPdfInput) => {
+  const pdfDoc = await PDFDocument.create();
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  doc.moveDown(1.5);
-  doc.fontSize(14).fillColor("#0F172A").text("Leitura fria");
-  doc
-    .fontSize(11)
-    .fillColor("#475569")
-    .text(getColdSummary(input.score));
+  let page = pdfDoc.addPage();
+  const { width, height } = page.getSize();
+  const margin = 48;
+  let cursorY = height - margin;
 
-  doc.moveDown(0.5);
-  doc
-    .fontSize(11)
-    .fillColor("#0F172A")
-    .text(`Classificação interna: ${input.levelLabel}`);
+  const drawHeading = (text: string) => {
+    page.drawText(text, {
+      x: margin,
+      y: cursorY,
+      size: 18,
+      font: fontBold,
+      color: rgb(0.06, 0.09, 0.16),
+    });
+    cursorY -= 22;
+  };
 
-  doc.moveDown(1.5);
-  doc.fontSize(14).fillColor("#0F172A").text("Sinais observados");
+  const drawSectionTitle = (text: string) => {
+    page.drawText(text, {
+      x: margin,
+      y: cursorY,
+      size: 12,
+      font: fontBold,
+      color: rgb(0.06, 0.09, 0.16),
+    });
+    cursorY -= 16;
+  };
+
+  const ensureSpace = (space: number) => {
+    if (cursorY - space < margin) {
+      page = pdfDoc.addPage();
+      cursorY = height - margin;
+    }
+  };
+
+  drawHeading("Relatório reservado");
+  cursorY = drawWrappedText(
+    page,
+    "Documento confidencial gerado automaticamente.",
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    10,
+    14,
+    rgb(0.2, 0.24, 0.31)
+  );
+
+  ensureSpace(80);
+  drawSectionTitle("Identificação");
+  cursorY = drawWrappedText(
+    page,
+    `Nome: ${input.name}`,
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    10,
+    14
+  );
+  cursorY = drawWrappedText(
+    page,
+    `Quiz: ${input.quizTitle}`,
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    10,
+    14
+  );
+  cursorY = drawWrappedText(
+    page,
+    `Data: ${input.createdAt.toLocaleString("pt-BR")}`,
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    10,
+    18
+  );
+
+  ensureSpace(80);
+  drawSectionTitle("Leitura fria");
+  cursorY = drawWrappedText(
+    page,
+    getColdSummary(input.score),
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    11,
+    16
+  );
+  cursorY = drawWrappedText(
+    page,
+    `Classificação interna: ${input.levelLabel}`,
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    10,
+    18,
+    rgb(0.06, 0.09, 0.16)
+  );
+
+  ensureSpace(80);
+  drawSectionTitle("Sinais observados");
   buildInsights(input.score).forEach((item) => {
-    doc.moveDown(0.4);
-    doc.fontSize(11).fillColor("#475569").text(`• ${item}`);
+    cursorY = drawWrappedText(
+      page,
+      `• ${item}`,
+      margin,
+      cursorY,
+      width - margin * 2,
+      fontRegular,
+      10,
+      16
+    );
   });
 
-  doc.moveDown(1.5);
-  doc.fontSize(14).fillColor("#0F172A").text("Mapa de respostas");
-  doc.moveDown(0.5);
+  ensureSpace(120);
+  drawSectionTitle("Mapa de respostas");
 
   input.responses.forEach((response, index) => {
+    ensureSpace(60);
     const question = input.questions[index];
-    doc
-      .fontSize(10)
-      .fillColor("#0F172A")
-      .text(`${index + 1}. ${question.text}`, { continued: false });
-    drawBar(doc, doc.x, doc.y + 4, response.value);
-    doc.moveDown(1.2);
-  });
-
-  doc.moveDown(1.5);
-  doc
-    .fontSize(10)
-    .fillColor("#64748B")
-    .text(
-      "Este relatório é informativo e não substitui avaliação profissional.",
-      { align: "left" }
+    cursorY = drawWrappedText(
+      page,
+      `${index + 1}. ${question.text}`,
+      margin,
+      cursorY,
+      width - margin * 2,
+      fontRegular,
+      9,
+      14,
+      rgb(0.06, 0.09, 0.16)
     );
-
-  doc.end();
-
-  return new Promise<Buffer>((resolve) => {
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    drawBar(page, margin, cursorY - 6, response.value);
+    cursorY -= 20;
   });
+
+  ensureSpace(40);
+  cursorY = drawWrappedText(
+    page,
+    "Este relatório é informativo e não substitui avaliação profissional.",
+    margin,
+    cursorY,
+    width - margin * 2,
+    fontRegular,
+    9,
+    14,
+    rgb(0.4, 0.45, 0.52)
+  );
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
 };
