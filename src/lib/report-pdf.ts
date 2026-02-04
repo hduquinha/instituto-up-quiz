@@ -58,6 +58,14 @@ const buildColdReading = (score: number, questions: QuizQuestion[], responses: R
   return statements;
 };
 
+const palette = {
+  ink: rgb(0.06, 0.09, 0.16),
+  muted: rgb(0.4, 0.45, 0.52),
+  soft: rgb(0.93, 0.94, 0.96),
+  accent: rgb(0.16, 0.2, 0.28),
+  light: rgb(0.98, 0.98, 0.99),
+};
+
 const drawBar = (
   page: any,
   x: number,
@@ -65,11 +73,11 @@ const drawBar = (
   value: number,
   maxValue = 4
 ) => {
-  const width = 180;
+  const width = 210;
   const height = 8;
   const filled = maxValue === 0 ? 0 : (value / maxValue) * width;
-  page.drawRectangle({ x, y, width, height, color: rgb(0.9, 0.91, 0.93) });
-  page.drawRectangle({ x, y, width: filled, height, color: rgb(0.06, 0.09, 0.16) });
+  page.drawRoundedRectangle({ x, y, width, height, borderRadius: 4, color: palette.soft });
+  page.drawRoundedRectangle({ x, y, width: filled, height, borderRadius: 4, color: palette.accent });
 };
 
 const buildCategoryScores = (
@@ -116,7 +124,7 @@ const drawWrappedText = (
   font: any,
   fontSize: number,
   lineHeight: number,
-  color = rgb(0.2, 0.24, 0.31)
+  color = palette.muted
 ) => {
   const words = text.split(" ");
   let line = "";
@@ -152,26 +160,34 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
   const margin = 48;
   let cursorY = height - margin;
 
-  const drawHeading = (text: string) => {
-    page.drawText(text, {
+  const drawHeader = (title: string, subtitle: string) => {
+    page.drawRectangle({ x: 0, y: height - 140, width, height: 140, color: palette.ink });
+    page.drawText(title, {
       x: margin,
-      y: cursorY,
-      size: 18,
+      y: height - 68,
+      size: 20,
       font: fontBold,
-      color: rgb(0.06, 0.09, 0.16),
+      color: rgb(1, 1, 1),
     });
-    cursorY -= 22;
+    page.drawText(subtitle, {
+      x: margin,
+      y: height - 92,
+      size: 10,
+      font: fontRegular,
+      color: rgb(0.85, 0.88, 0.92),
+    });
+    cursorY = height - 160;
   };
 
   const drawSectionTitle = (text: string) => {
     page.drawText(text, {
       x: margin,
       y: cursorY,
-      size: 12,
+      size: 11,
       font: fontBold,
-      color: rgb(0.06, 0.09, 0.16),
+      color: palette.ink,
     });
-    cursorY -= 16;
+    cursorY -= 14;
   };
 
   const ensureSpace = (space: number) => {
@@ -181,30 +197,28 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
     }
   };
 
-  drawHeading("Relatório reservado");
-  cursorY = drawWrappedText(
-    page,
-    "Documento confidencial gerado automaticamente.",
-    margin,
-    cursorY,
-    width - margin * 2,
-    fontRegular,
-    10,
-    14,
-    rgb(0.2, 0.24, 0.31)
-  );
+  drawHeader("Relatório reservado", "Análise personalizada e confidencial");
 
   ensureSpace(80);
   drawSectionTitle("Identificação");
+  page.drawRoundedRectangle({
+    x: margin,
+    y: cursorY - 40,
+    width: width - margin * 2,
+    height: 48,
+    borderRadius: 10,
+    color: palette.light,
+  });
   cursorY = drawWrappedText(
     page,
     `Nome: ${input.name}`,
     margin,
-    cursorY,
+    cursorY - 12,
     width - margin * 2,
     fontRegular,
     10,
-    14
+    14,
+    palette.ink
   );
   cursorY = drawWrappedText(
     page,
@@ -214,20 +228,30 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
     width - margin * 2,
     fontRegular,
     10,
-    18
+    18,
+    palette.muted
   );
 
   ensureSpace(80);
   drawSectionTitle("Síntese");
+  page.drawRoundedRectangle({
+    x: margin,
+    y: cursorY - 48,
+    width: width - margin * 2,
+    height: 58,
+    borderRadius: 12,
+    color: palette.soft,
+  });
   cursorY = drawWrappedText(
     page,
     getSummary(input.score),
-    margin,
-    cursorY,
+    margin + 12,
+    cursorY - 10,
     width - margin * 2,
     fontRegular,
     11,
-    16
+    16,
+    palette.ink
   );
 
   ensureSpace(80);
@@ -241,7 +265,8 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
       width - margin * 2,
       fontRegular,
       10,
-      16
+      16,
+      palette.muted
     );
   });
 
@@ -260,10 +285,10 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
       fontRegular,
       10,
       14,
-      rgb(0.06, 0.09, 0.16)
+      palette.ink
     );
     drawBar(page, margin, cursorY - 6, item.average, 4);
-    cursorY -= 18;
+    cursorY -= 20;
   });
 
   ensureSpace(40);
@@ -288,7 +313,7 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
     fontRegular,
     9,
     14,
-    rgb(0.4, 0.45, 0.52)
+    palette.muted
   );
 
   const pdfBytes = await pdfDoc.save();
