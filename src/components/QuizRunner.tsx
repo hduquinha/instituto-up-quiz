@@ -302,16 +302,13 @@ export default function QuizRunner({ quiz }: Props) {
         {question.text}
       </h2>
 
-      <div className="mt-4 flex items-center gap-3">
-        <div className="h-1 flex-1 rounded-full bg-slate-100">
+      <div className="mt-4">
+        <div className="h-1 w-full rounded-full bg-slate-100">
           <div
             className="h-1 rounded-full bg-slate-900 transition-all"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          {progress.toFixed(0)}%
-        </span>
       </div>
 
       <div className="mt-6 grid gap-3">

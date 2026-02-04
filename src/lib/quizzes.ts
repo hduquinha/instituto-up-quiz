@@ -45,6 +45,14 @@ const timeToSleepOptions: QuizOption[] = [
   { label: "Mais de 60 min", value: 4 },
 ];
 
+const timeToCalmOptions: QuizOption[] = [
+  { label: "Até 5 min", value: 0 },
+  { label: "5–15 min", value: 1 },
+  { label: "15–30 min", value: 2 },
+  { label: "30–60 min", value: 3 },
+  { label: "Mais de 60 min", value: 4 },
+];
+
 const intensityOptions: QuizOption[] = [
   { label: "Nada", value: 0 },
   { label: "Baixo", value: 1 },
@@ -73,7 +81,7 @@ const ansiedadeQuiz: QuizDefinition = {
     {
       id: "base-1",
       text: "Quando algo sai do controle, quanto tempo sua mente leva para desacelerar?",
-      options: intensityOptions,
+      options: timeToCalmOptions,
       segment: "base",
       tags: ["controle", "foco"],
     },
