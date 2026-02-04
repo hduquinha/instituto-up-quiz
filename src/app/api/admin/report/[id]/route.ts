@@ -55,7 +55,19 @@ export async function GET(request: Request, { params }: Params) {
     );
   }
 
-  const responses = JSON.parse(rows[0].answers as string) as ReportResponse[];
+  const rawAnswers = rows[0].answers as unknown;
+  const parsedAnswers =
+    typeof rawAnswers === "string" ? JSON.parse(rawAnswers) : rawAnswers;
+
+  const responses = Array.isArray(parsedAnswers)
+    ? parsedAnswers.map((item, index) => {
+        if (typeof item === "number") {
+          return { id: quiz.questionPool[index]?.id ?? "", value: item };
+        }
+
+        return item as ReportResponse;
+      })
+    : [];
   const questionMap = new Map(
     quiz.questionPool.map((question) => [question.id, question])
   );
