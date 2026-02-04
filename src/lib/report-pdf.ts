@@ -76,8 +76,8 @@ const drawBar = (
   const width = 210;
   const height = 8;
   const filled = maxValue === 0 ? 0 : (value / maxValue) * width;
-  page.drawRoundedRectangle({ x, y, width, height, borderRadius: 4, color: palette.soft });
-  page.drawRoundedRectangle({ x, y, width: filled, height, borderRadius: 4, color: palette.accent });
+  page.drawRectangle({ x, y, width, height, color: palette.soft });
+  page.drawRectangle({ x, y, width: filled, height, color: palette.accent });
 };
 
 const buildCategoryScores = (
@@ -201,12 +201,11 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
 
   ensureSpace(80);
   drawSectionTitle("Identificação");
-  page.drawRoundedRectangle({
+  page.drawRectangle({
     x: margin,
     y: cursorY - 40,
     width: width - margin * 2,
     height: 48,
-    borderRadius: 10,
     color: palette.light,
   });
   cursorY = drawWrappedText(
@@ -234,12 +233,11 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
 
   ensureSpace(80);
   drawSectionTitle("Síntese");
-  page.drawRoundedRectangle({
+  page.drawRectangle({
     x: margin,
     y: cursorY - 48,
     width: width - margin * 2,
     height: 58,
-    borderRadius: 12,
     color: palette.soft,
   });
   cursorY = drawWrappedText(
