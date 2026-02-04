@@ -4,6 +4,8 @@ import { ensureSchema, pool } from "@/lib/db";
 import { buildReport, calculateScore, getLevel } from "@/lib/quiz-engine";
 import { getQuizById } from "@/lib/quizzes";
 
+export const runtime = "nodejs";
+
 type SubmitPayload = {
   quizId: string;
   name: string;
@@ -19,6 +21,13 @@ const isValidAnswers = (answers: number[], expected: number) =>
 
 export async function POST(request: Request) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { message: "DATABASE_URL não configurada." },
+        { status: 500 }
+      );
+    }
+
     const body = (await request.json()) as SubmitPayload;
     const quiz = getQuizById(body.quizId);
 
@@ -86,6 +95,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ id });
   } catch (error) {
+    console.error("Erro ao salvar respostas do quiz:", error);
     return NextResponse.json(
       { message: "Não foi possível salvar suas respostas." },
       { status: 500 }
