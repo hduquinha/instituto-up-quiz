@@ -15,26 +15,26 @@ export const getLevel = (score: number): QuizLevel => {
 export const getLevelLabel = (level: QuizLevel) => {
   switch (level) {
     case "baixo":
-      return "Baixo";
+      return "Faixa 1";
     case "moderado":
-      return "Moderado";
+      return "Faixa 2";
     case "alto":
-      return "Alto";
+      return "Faixa 3";
     default:
-      return "Muito alto";
+      return "Faixa 4";
   }
 };
 
 export const getLevelSummary = (level: QuizLevel) => {
   switch (level) {
     case "baixo":
-      return "Seu perfil indica sinais leves de ansiedade no momento.";
+      return "Seu perfil atual aponta padrões leves de ativação interna.";
     case "moderado":
-      return "Seu perfil indica sinais moderados de ansiedade, que merecem atenção.";
+      return "Seu perfil atual aponta padrões moderados que pedem ajuste.";
     case "alto":
-      return "Seu perfil indica sinais altos de ansiedade, com impacto no dia a dia.";
+      return "Seu perfil atual aponta padrões altos com impacto na rotina.";
     default:
-      return "Seu perfil indica sinais muito altos de ansiedade. Isso merece cuidado imediato.";
+      return "Seu perfil atual aponta padrões intensos que exigem ação rápida.";
   }
 };
 
@@ -42,27 +42,27 @@ export const getRecommendations = (level: QuizLevel) => {
   switch (level) {
     case "baixo":
       return [
-        "Mantenha hábitos de sono consistentes.",
-        "Inclua pausas conscientes na rotina.",
-        "Observe gatilhos que aumentam a preocupação.",
+        "Mantenha rotinas previsíveis para reduzir ruído mental.",
+        "Inclua pausas curtas para recalibrar o foco.",
+        "Registre gatilhos que aumentam tensão silenciosa.",
       ];
     case "moderado":
       return [
-        "Registre pensamentos recorrentes para aliviar a mente.",
-        "Reserve momentos de respiração profunda durante o dia.",
-        "Ajuste limites e reduza sobrecarga de tarefas.",
+        "Mapeie horários de pico e reduza sobrecarga.",
+        "Use ciclos curtos de respiração para baixar o ritmo.",
+        "Crie limites objetivos para tarefas e mensagens.",
       ];
     case "alto":
       return [
-        "Crie rituais de desaceleração antes de dormir.",
-        "Evite excesso de cafeína e notícias estressantes.",
-        "Considere apoio profissional para estratégias avançadas.",
+        "Implemente rituais fixos de desaceleração noturna.",
+        "Reduza estímulos que elevam alerta fisiológico.",
+        "Considere apoio especializado para estratégias avançadas.",
       ];
     default:
       return [
-        "Busque apoio profissional o quanto antes.",
-        "Crie uma rede de apoio com pessoas próximas.",
-        "Reduza estímulos e priorize autocuidado diário.",
+        "Busque apoio profissional com prioridade.",
+        "Ative uma rede de suporte confiável.",
+        "Reduza estímulos e preserve energia diária.",
       ];
   }
 };
