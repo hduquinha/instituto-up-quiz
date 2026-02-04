@@ -62,13 +62,49 @@ const drawBar = (
   page: any,
   x: number,
   y: number,
-  value: number
+  value: number,
+  maxValue = 4
 ) => {
   const width = 180;
   const height = 8;
-  const filled = (value / 4) * width;
+  const filled = maxValue === 0 ? 0 : (value / maxValue) * width;
   page.drawRectangle({ x, y, width, height, color: rgb(0.9, 0.91, 0.93) });
   page.drawRectangle({ x, y, width: filled, height, color: rgb(0.06, 0.09, 0.16) });
+};
+
+const buildCategoryScores = (
+  questions: QuizQuestion[],
+  responses: ReportResponse[]
+) => {
+  const categoryMap: Record<string, string> = {
+    controle: "Controle e previsibilidade",
+    foco: "Foco e ruído mental",
+    corpo: "Sinais físicos",
+    sono: "Ritmo de descanso",
+    social: "Interações sociais",
+    rotina: "Carga e rotina",
+  };
+
+  const categoryTotals = new Map<string, { sum: number; count: number }>();
+
+  responses.forEach((response, index) => {
+    const question = questions[index];
+    question.tags.forEach((tag) => {
+      const category = categoryMap[tag] ?? tag;
+      const current = categoryTotals.get(category) ?? { sum: 0, count: 0 };
+      categoryTotals.set(category, {
+        sum: current.sum + response.value,
+        count: current.count + 1,
+      });
+    });
+  });
+
+  return Array.from(categoryTotals.entries())
+    .map(([category, stat]) => ({
+      category,
+      average: stat.count === 0 ? 0 : stat.sum / stat.count,
+    }))
+    .sort((a, b) => b.average - a.average);
 };
 
 const drawWrappedText = (
@@ -210,24 +246,24 @@ export const generateReportPdf = async (input: ReportPdfInput) => {
   });
 
   ensureSpace(120);
-  drawSectionTitle("Mapa de respostas");
+  drawSectionTitle(`Mapa de ${input.name}`);
 
-  input.responses.forEach((response, index) => {
-    ensureSpace(60);
-    const question = input.questions[index];
+  const categories = buildCategoryScores(input.questions, input.responses);
+  categories.forEach((item) => {
+    ensureSpace(40);
     cursorY = drawWrappedText(
       page,
-      `${index + 1}. ${question.text}`,
+      item.category,
       margin,
       cursorY,
       width - margin * 2,
       fontRegular,
-      9,
+      10,
       14,
       rgb(0.06, 0.09, 0.16)
     );
-    drawBar(page, margin, cursorY - 6, response.value);
-    cursorY -= 20;
+    drawBar(page, margin, cursorY - 6, item.average, 4);
+    cursorY -= 18;
   });
 
   ensureSpace(40);
