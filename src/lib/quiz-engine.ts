@@ -1,4 +1,4 @@
-import type { QuizDefinition } from "@/lib/quizzes";
+import type { QuizDefinition, QuizQuestion } from "@/lib/quizzes";
 
 export type QuizLevel = "baixo" | "moderado" | "alto" | "muito-alto";
 
@@ -71,6 +71,7 @@ type BuildReportInput = {
   name: string;
   quiz: QuizDefinition;
   answers: number[];
+  questionsUsed: QuizQuestion[];
   score: number;
   level: QuizLevel;
 };
@@ -79,12 +80,13 @@ export const buildReport = ({
   name,
   quiz,
   answers,
+  questionsUsed,
   score,
   level,
 }: BuildReportInput) => {
   const summary = getLevelSummary(level);
   const recommendations = getRecommendations(level);
-  const detailLines = quiz.questions.map((question, index) => {
+  const detailLines = questionsUsed.map((question, index) => {
     const value = answers[index] ?? 0;
     return `${index + 1}. ${question.text} -> ${value}/4`;
   });

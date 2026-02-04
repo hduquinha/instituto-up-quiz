@@ -11,13 +11,23 @@ type SubmitPayload = {
   name: string;
   email?: string | null;
   phone?: string | null;
-  answers: number[];
+  responses: { id: string; value: number }[];
 };
 
-const isValidAnswers = (answers: number[], expected: number) =>
-  Array.isArray(answers) &&
-  answers.length === expected &&
-  answers.every((value) => Number.isFinite(value) && value >= 0 && value <= 4);
+const isValidResponses = (
+  responses: { id: string; value: number }[],
+  expected: number,
+  questionIds: Set<string>
+) =>
+  Array.isArray(responses) &&
+  responses.length === expected &&
+  responses.every(
+    (item) =>
+      questionIds.has(item.id) &&
+      Number.isFinite(item.value) &&
+      item.value >= 0 &&
+      item.value <= 4
+  );
 
 export async function POST(request: Request) {
   try {
@@ -45,19 +55,42 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isValidAnswers(body.answers, quiz.questions.length)) {
+    const questionMap = new Map(
+      quiz.questionPool.map((question) => [question.id, question])
+    );
+
+    if (
+      !isValidResponses(
+        body.responses,
+        quiz.totalQuestions,
+        new Set(questionMap.keys())
+      )
+    ) {
       return NextResponse.json(
         { message: "Respostas inválidas." },
         { status: 400 }
       );
     }
 
-    const score = calculateScore(body.answers);
+    const answers = body.responses.map((item) => item.value);
+    const questionsUsed = body.responses
+      .map((item) => questionMap.get(item.id))
+      .filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+    if (questionsUsed.length !== body.responses.length) {
+      return NextResponse.json(
+        { message: "Respostas inválidas." },
+        { status: 400 }
+      );
+    }
+
+    const score = calculateScore(answers);
     const level = getLevel(score);
     const report = buildReport({
       name: body.name,
       quiz,
-      answers: body.answers,
+      answers,
+      questionsUsed,
       score,
       level,
     });
@@ -86,7 +119,7 @@ export async function POST(request: Request) {
         body.name.trim(),
         body.email?.trim() || null,
         body.phone?.trim() || null,
-        JSON.stringify(body.answers),
+        JSON.stringify(body.responses),
         score,
         level,
         report,

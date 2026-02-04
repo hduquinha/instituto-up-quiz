@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { QuizDefinition } from "@/lib/quizzes";
+import type { QuizDefinition, QuizQuestion } from "@/lib/quizzes";
 import {
   calculateScore,
   getLevel,
@@ -10,11 +10,11 @@ import {
 } from "@/lib/quiz-engine";
 
 const insights = [
-  "Sinais baixos nesta resposta.",
-  "Leve impacto percebido.",
-  "Sinal de atenção moderada.",
-  "Sinal alto de ansiedade.",
-  "Sinal muito alto nesta área.",
+  "Traço leve percebido nesta resposta.",
+  "Um sinal discreto apareceu aqui.",
+  "Traço moderado identificado nesta área.",
+  "Sinal intenso nesta resposta.",
+  "Sinal muito intenso nesta área.",
 ];
 
 type Props = {
@@ -23,9 +23,8 @@ type Props = {
 
 export default function QuizRunner({ quiz }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(
-    Array(quiz.questions.length).fill(-1)
-  );
+  const [flow, setFlow] = useState<QuizQuestion[]>([quiz.questionPool[0]]);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -33,29 +32,34 @@ export default function QuizRunner({ quiz }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const totalQuestions = quiz.questions.length;
+  const totalQuestions = quiz.totalQuestions;
   const isLastQuestion = currentIndex === totalQuestions;
-  const answeredCount = answers.filter((value) => value >= 0).length;
+  const answeredCount = Object.values(answers).filter((value) => value >= 0)
+    .length;
 
-  const partialScore = useMemo(
-    () =>
-      answers
-        .slice(0, Math.max(1, currentIndex + 1))
-        .filter((value) => value >= 0)
-        .reduce((total, value) => total + value, 0),
-    [answers, currentIndex]
-  );
+  const partialScore = useMemo(() => {
+    const currentIds = flow
+      .slice(0, Math.max(1, currentIndex + 1))
+      .map((question) => question.id);
+    return currentIds
+      .map((id) => answers[id])
+      .filter((value) => value !== undefined && value >= 0)
+      .reduce((total, value) => total + value, 0);
+  }, [answers, currentIndex, flow]);
 
   const progress = Math.min(
     (Math.max(currentIndex, 0) / totalQuestions) * 100,
     100
   );
 
-  const question = quiz.questions[currentIndex];
-  const selectedValue = answers[currentIndex];
+  const question = flow[currentIndex];
+  const selectedValue = answers[question?.id] ?? -1;
 
   const score = useMemo(
-    () => calculateScore(answers.filter((value) => value >= 0)),
+    () =>
+      calculateScore(
+        Object.values(answers).filter((value) => value >= 0)
+      ),
     [answers]
   );
   const level = getLevel(score);
@@ -65,23 +69,47 @@ export default function QuizRunner({ quiz }: Props) {
 
   const momentLabel = useMemo(() => {
     if (answeredCount === 0) return "Início";
-    if (partialScore <= answeredCount * 1.2) return "Sinais leves";
-    if (partialScore <= answeredCount * 2.4) return "Sinais moderados";
-    if (partialScore <= answeredCount * 3.2) return "Sinais altos";
-    return "Sinais muito altos";
+    if (partialScore <= answeredCount * 1.2) return "Traços leves";
+    if (partialScore <= answeredCount * 2.4) return "Traços moderados";
+    if (partialScore <= answeredCount * 3.2) return "Traços altos";
+    return "Traços intensos";
   }, [answeredCount, partialScore]);
 
   const handleSelect = (value: number) => {
-    setAnswers((prev) => {
-      const next = [...prev];
-      next[currentIndex] = value;
-      return next;
-    });
+    setAnswers((prev) => ({
+      ...prev,
+      [question.id]: value,
+    }));
+  };
+
+  const pickNextQuestion = () => {
+    const usedIds = new Set(flow.map((item) => item.id));
+    const avgScore = answeredCount > 0 ? score / answeredCount : 0;
+    const targetSegment = avgScore <= 1.4
+      ? "sutil"
+      : avgScore <= 2.6
+        ? "moderado"
+        : "intenso";
+
+    const primaryPool = quiz.questionPool.filter(
+      (item) => item.segment === targetSegment && !usedIds.has(item.id)
+    );
+    const fallbackPool = quiz.questionPool.filter(
+      (item) => !usedIds.has(item.id)
+    );
+
+    const pool = primaryPool.length > 0 ? primaryPool : fallbackPool;
+    return pool[Math.floor(Math.random() * pool.length)];
   };
 
   const handleNext = () => {
+    if (selectedValue < 0) return;
     if (currentIndex < totalQuestions) {
       setCurrentIndex((prev) => prev + 1);
+      if (flow.length < currentIndex + 2 && flow.length < totalQuestions) {
+        const nextQuestion = pickNextQuestion();
+        setFlow((prev) => [...prev, nextQuestion]);
+      }
     }
   };
 
@@ -104,7 +132,13 @@ export default function QuizRunner({ quiz }: Props) {
       return;
     }
 
-    const sanitizedAnswers = answers.map((value) => Math.max(0, value));
+    const sanitizedAnswers = flow.map((question) =>
+      Math.max(0, answers[question.id] ?? 0)
+    );
+    const responses = flow.map((question, index) => ({
+      id: question.id,
+      value: sanitizedAnswers[index],
+    }));
 
     setLoading(true);
     try {
@@ -116,7 +150,7 @@ export default function QuizRunner({ quiz }: Props) {
           name: name.trim(),
           email: email.trim() || null,
           phone: phone.trim() || null,
-          answers: sanitizedAnswers,
+          responses,
         }),
       });
 
@@ -164,7 +198,7 @@ export default function QuizRunner({ quiz }: Props) {
             Pontuação total
           </p>
           <div className="mt-2 text-3xl font-semibold text-slate-900">
-            {score} / {quiz.questions.length * 4}
+            {score} / {totalQuestions * 4}
           </div>
           <p className="mt-1 text-slate-600">
             Nível: <span className="font-semibold">{getLevelLabel(level)}</span>
