@@ -13,11 +13,7 @@ const buildSslConfig = () => {
     return { ca: process.env.DATABASE_CA_CERT };
   }
 
-  if (process.env.DATABASE_URL.includes("sslmode=require")) {
-    return { rejectUnauthorized: false };
-  }
-
-  return undefined;
+  return { rejectUnauthorized: false };
 };
 
 export const pool =
