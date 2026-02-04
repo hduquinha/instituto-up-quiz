@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import type PDFKit from "pdfkit";
 import type { QuizQuestion } from "@/lib/quizzes";
 
 export type ReportResponse = {
@@ -49,7 +50,12 @@ const buildInsights = (score: number) => {
   ];
 };
 
-const drawBar = (doc: PDFDocument, x: number, y: number, value: number) => {
+const drawBar = (
+  doc: PDFKit.PDFDocument,
+  x: number,
+  y: number,
+  value: number
+) => {
   const width = 140;
   const height = 8;
   const filled = (value / 4) * width;
