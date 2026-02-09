@@ -93,7 +93,17 @@ export default function AdminPage() {
       }
 
       const blob = await response.blob();
+      const isIOS =
+        typeof window !== "undefined" &&
+        /iPad|iPhone|iPod/.test(navigator.userAgent);
       const url = window.URL.createObjectURL(blob);
+
+      if (isIOS) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+        return;
+      }
+
       const link = document.createElement("a");
       link.href = url;
       link.download = `relatorio-${name || "quiz"}.pdf`;
