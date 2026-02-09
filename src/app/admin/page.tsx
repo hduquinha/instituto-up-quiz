@@ -39,6 +39,16 @@ export default function AdminPage() {
     useBusiness: boolean
   ) => {
     const encodedMessage = encodeURIComponent(message);
+    const isMobile =
+      typeof window !== "undefined" &&
+      /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      if (useBusiness) {
+        return `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+      }
+      return `https://wa.me/${phone}?text=${encodedMessage}`;
+    }
     if (useBusiness) {
       return `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
     }
@@ -128,13 +138,13 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 px-6 py-16 text-white">
+    <div className="min-h-screen bg-slate-950 px-4 py-10 text-white sm:px-6 sm:py-16">
       <div className="mx-auto w-full max-w-5xl">
         <header className="mb-10">
           <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
             Área administrativa
           </p>
-          <h1 className="mt-3 text-3xl font-semibold">
+          <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">
             Respostas e relatórios
           </h1>
         </header>
@@ -165,7 +175,7 @@ export default function AdminPage() {
         </div>
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-slate-800">
-          <div className="grid grid-cols-6 gap-4 bg-slate-900/60 px-6 py-4 text-xs uppercase tracking-widest text-slate-400">
+          <div className="hidden grid-cols-6 gap-4 bg-slate-900/60 px-6 py-4 text-xs uppercase tracking-widest text-slate-400 md:grid">
             <span>Nome</span>
             <span>Contato</span>
             <span>Nível</span>
@@ -181,41 +191,74 @@ export default function AdminPage() {
             responses.map((response) => (
               <div
                 key={response.id}
-                className="grid grid-cols-6 gap-4 border-t border-slate-800 px-6 py-4 text-sm"
+                className="grid grid-cols-1 gap-4 border-t border-slate-800 px-5 py-5 text-sm md:grid-cols-6 md:gap-4 md:px-6 md:py-4"
               >
-                <span className="font-medium text-white">
-                  {response.name}
-                </span>
-                <span className="text-slate-300">
-                  {response.phone ? (
-                    <button
-                      type="button"
-                      onClick={() => handleContactClick(response)}
-                      className="font-semibold text-white transition hover:text-slate-200"
-                    >
-                      {response.phone}
-                    </button>
-                  ) : (
-                    <span className="text-slate-500">Sem telefone</span>
-                  )}
-                  {response.email ? (
-                    <span className="text-slate-400"> | {response.email}</span>
-                  ) : null}
-                </span>
-                <span className="text-slate-300 capitalize">
-                  {response.level}
-                </span>
-                <span className="text-slate-300">{response.score}</span>
-                <span className="text-slate-300">
-                  {new Date(response.createdAt).toLocaleString("pt-BR")}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleDownload(response.id, response.name)}
-                  className="rounded-full border border-slate-600 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-slate-300"
-                >
-                  Baixar
-                </button>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 md:hidden">
+                    Nome
+                  </p>
+                  <span className="font-medium text-white">
+                    {response.name}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 md:hidden">
+                    Contato
+                  </p>
+                  <span className="text-slate-300">
+                    {response.phone ? (
+                      <button
+                        type="button"
+                        onClick={() => handleContactClick(response)}
+                        className="font-semibold text-white transition hover:text-slate-200"
+                      >
+                        {response.phone}
+                      </button>
+                    ) : (
+                      <span className="text-slate-500">Sem telefone</span>
+                    )}
+                    {response.email ? (
+                      <span className="block text-slate-400 md:inline">
+                        {response.phone ? " | " : ""}
+                        {response.email}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 md:hidden">
+                    Nivel
+                  </p>
+                  <span className="text-slate-300 capitalize">
+                    {response.level}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 md:hidden">
+                    Pontuacao
+                  </p>
+                  <span className="text-slate-300">{response.score}</span>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 md:hidden">
+                    Data
+                  </p>
+                  <span className="text-slate-300">
+                    {new Date(response.createdAt).toLocaleString("pt-BR")}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 md:hidden">
+                    Acoes
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleDownload(response.id, response.name)}
+                    className="rounded-full border border-slate-600 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-slate-300"
+                  >
+                    Baixar
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -236,6 +279,9 @@ export default function AdminPage() {
                 {selectedResponse.name}
               </span>
               . O PDF sera baixado em seguida para anexar.
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              No celular, o link abre o app instalado e voce anexa o PDF manualmente.
             </p>
             <div className="mt-6 flex flex-col gap-3">
               <button
