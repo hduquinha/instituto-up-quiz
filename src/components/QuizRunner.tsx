@@ -188,11 +188,11 @@ export default function QuizRunner({ quiz }: Props) {
 
   if (submitted) {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-xl">
-        <h2 className="text-2xl font-semibold text-slate-900">
+      <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
+        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
           Obrigado! Seu relatório personalizado está em preparação.
         </h2>
-        <p className="mt-4 text-slate-600">
+        <p className="mt-4 text-sm text-slate-600 sm:text-base">
           Nossa equipe enviará o relatório completo em breve para o contato
           informado.
         </p>
@@ -202,15 +202,15 @@ export default function QuizRunner({ quiz }: Props) {
 
   if (isLastQuestion) {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-xl">
-        <h2 className="text-2xl font-semibold text-slate-900">
+      <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
+        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
           Relatório reservado
         </h2>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-sm text-slate-600 sm:text-base">
           Seu resultado completo está pronto, mas só é liberado com o contato.
         </p>
 
-        <div className="relative mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-6">
+        <div className="relative mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
           <div className="space-y-3 blur-sm">
             <div className="h-6 w-40 rounded-full bg-slate-200" />
             <div className="h-3 w-full rounded-full bg-slate-200" />
@@ -226,10 +226,10 @@ export default function QuizRunner({ quiz }: Props) {
         </div>
 
         <div className="mt-8">
-          <h3 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
             Desbloquear relatório
           </h3>
-          <p className="mt-1 text-slate-600">
+          <p className="mt-1 text-sm text-slate-600 sm:text-base">
             Informe seu contato para liberar o relatório completo no WhatsApp.
           </p>
 
@@ -283,8 +283,8 @@ export default function QuizRunner({ quiz }: Props) {
   }
 
   return (
-    <div className="rounded-3xl bg-white p-8 shadow-xl">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+    <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 sm:text-sm">
         <span>
           Pergunta {currentIndex + 1} de {totalQuestions}
         </span>
@@ -298,7 +298,7 @@ export default function QuizRunner({ quiz }: Props) {
         />
       </div>
 
-      <h2 className="mt-6 text-2xl font-semibold text-slate-900">
+      <h2 className="mt-6 text-xl font-semibold text-slate-900 sm:text-2xl">
         {question.text}
       </h2>
 
@@ -319,7 +319,7 @@ export default function QuizRunner({ quiz }: Props) {
               key={option.label}
               type="button"
               onClick={() => handleSelect(option.value)}
-              className={`rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${
+              className={`rounded-2xl border px-4 py-3 text-left text-sm font-medium transition sm:text-base ${
                 isSelected
                   ? "border-slate-900 bg-slate-900 text-white"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
@@ -337,12 +337,12 @@ export default function QuizRunner({ quiz }: Props) {
         </div>
       ) : null}
 
-      <div className="mt-8 flex items-center justify-between">
+      <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={handleBack}
           disabled={currentIndex === 0}
-          className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           Voltar
         </button>
@@ -350,7 +350,7 @@ export default function QuizRunner({ quiz }: Props) {
           type="button"
           onClick={handleNext}
           disabled={selectedValue < 0}
-          className="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           Próxima
         </button>

@@ -2,37 +2,37 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-950 px-6 py-16 text-white">
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-14">
+    <div className="min-h-screen bg-slate-950 px-4 py-10 text-white sm:px-6 sm:py-14 lg:py-16">
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 sm:gap-14">
         <header className="flex flex-col gap-6">
           <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
             Relatórios personalizados
           </p>
-          <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight">
+          <h1 className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
             Descubra seu nível de ansiedade com um quiz inteligente e receba
             um relatório sob medida.
           </h1>
-          <p className="max-w-2xl text-lg text-slate-300">
+          <p className="max-w-2xl text-base text-slate-300 sm:text-lg">
             Responda perguntas rápidas, veja um resumo imediato e receba um
             relatório com insights e próximos passos.
           </p>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
             <Link
               href="/quiz/ansiedade"
-              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
+              className="w-full rounded-full bg-white px-6 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-200 sm:w-auto"
             >
               Iniciar quiz agora
             </Link>
             <Link
               href="/quiz"
-              className="rounded-full border border-slate-700 px-6 py-3 text-sm font-semibold text-white transition hover:border-slate-400"
+              className="w-full rounded-full border border-slate-700 px-6 py-3 text-center text-sm font-semibold text-white transition hover:border-slate-400 sm:w-auto"
             >
               Ver todos os quizzes
             </Link>
           </div>
         </header>
 
-        <section className="grid gap-6 md:grid-cols-3">
+        <section className="grid gap-5 sm:gap-6 md:grid-cols-3">
           {[
             {
               title: "Experiência gamificada",
@@ -52,7 +52,7 @@ export default function Home() {
           ].map((item) => (
             <div
               key={item.title}
-              className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6"
+              className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6"
             >
               <h2 className="text-xl font-semibold">{item.title}</h2>
               <p className="mt-2 text-sm text-slate-300">{item.description}</p>
