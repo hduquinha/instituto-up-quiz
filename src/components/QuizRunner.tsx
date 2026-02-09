@@ -190,7 +190,7 @@ export default function QuizRunner({ quiz }: Props) {
     return (
       <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
         <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
-          Obrigado! Seu relatorio esta em preparacao.
+          Obrigado! Seu relatorio esta em PREPARAÇÃO.
         </h2>
         <p className="mt-4 text-sm text-slate-600 sm:text-base">
           Quando o relatorio estiver completo, nossa equipe entrara em contato
