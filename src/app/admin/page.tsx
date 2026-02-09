@@ -83,6 +83,21 @@ export default function AdminPage() {
 
   const handleDownload = async (id: string, name: string) => {
     setError(null);
+    const isIOS =
+      typeof window !== "undefined" &&
+      /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isIOS) {
+      if (!password) {
+        setError("Senha obrigatoria para baixar no iPhone.");
+        return;
+      }
+      const url = `/api/admin/report/${id}?password=${encodeURIComponent(
+        password
+      )}`;
+      window.location.assign(url);
+      return;
+    }
     try {
       const response = await fetch(`/api/admin/report/${id}`, {
         headers: { "x-admin-password": password },
@@ -93,16 +108,7 @@ export default function AdminPage() {
       }
 
       const blob = await response.blob();
-      const isIOS =
-        typeof window !== "undefined" &&
-        /iPad|iPhone|iPod/.test(navigator.userAgent);
       const url = window.URL.createObjectURL(blob);
-
-      if (isIOS) {
-        window.open(url, "_blank", "noopener,noreferrer");
-        window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
-        return;
-      }
 
       const link = document.createElement("a");
       link.href = url;

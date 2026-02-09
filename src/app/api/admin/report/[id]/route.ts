@@ -7,7 +7,14 @@ export const runtime = "nodejs";
 
 const isAuthorized = (request: Request) => {
   const password = request.headers.get("x-admin-password");
-  return password && password === process.env.ADMIN_PASSWORD;
+  if (password && password === process.env.ADMIN_PASSWORD) {
+    return true;
+  }
+  const url = new URL(request.url);
+  const queryPassword = url.searchParams.get("password");
+  return Boolean(
+    queryPassword && queryPassword === process.env.ADMIN_PASSWORD
+  );
 };
 
 type Params = {
