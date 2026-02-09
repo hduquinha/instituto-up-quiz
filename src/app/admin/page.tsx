@@ -17,6 +17,33 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [responses, setResponses] = useState<ResponseItem[]>([]);
+  const [selectedResponse, setSelectedResponse] = useState<ResponseItem | null>(
+    null
+  );
+  const [showWhatsappPicker, setShowWhatsappPicker] = useState(false);
+
+  const normalizePhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, "");
+    if (!digits) return null;
+    if (digits.startsWith("55")) return digits;
+    return `55${digits}`;
+  };
+
+  const buildWhatsappMessage = (name: string) =>
+    `Oi ${name || ""}! Fechei seu relatorio do quiz. Segue o PDF em anexo. ` +
+    "Se quiser, posso explicar os pontos principais por aqui.";
+
+  const buildWhatsappUrl = (
+    phone: string,
+    message: string,
+    useBusiness: boolean
+  ) => {
+    const encodedMessage = encodeURIComponent(message);
+    if (useBusiness) {
+      return `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+    }
+    return `https://wa.me/${phone}?text=${encodedMessage}`;
+  };
 
   const handleLogin = async () => {
     setError(null);
@@ -69,6 +96,35 @@ export default function AdminPage() {
           : "Erro ao baixar relatório."
       );
     }
+  };
+
+  const handleContactClick = (response: ResponseItem) => {
+    if (!response.phone) {
+      setError("Telefone não disponível para este contato.");
+      return;
+    }
+    setSelectedResponse(response);
+    setShowWhatsappPicker(true);
+  };
+
+  const handleWhatsappChoice = async (useBusiness: boolean) => {
+    if (!selectedResponse?.phone) {
+      setShowWhatsappPicker(false);
+      return;
+    }
+
+    const normalizedPhone = normalizePhone(selectedResponse.phone);
+    if (!normalizedPhone) {
+      setError("Telefone inválido.");
+      setShowWhatsappPicker(false);
+      return;
+    }
+
+    const message = buildWhatsappMessage(selectedResponse.name);
+    const url = buildWhatsappUrl(normalizedPhone, message, useBusiness);
+    window.open(url, "_blank", "noopener,noreferrer");
+    await handleDownload(selectedResponse.id, selectedResponse.name);
+    setShowWhatsappPicker(false);
   };
 
   return (
@@ -131,7 +187,20 @@ export default function AdminPage() {
                   {response.name}
                 </span>
                 <span className="text-slate-300">
-                  {[response.phone, response.email].filter(Boolean).join(" | ")}
+                  {response.phone ? (
+                    <button
+                      type="button"
+                      onClick={() => handleContactClick(response)}
+                      className="font-semibold text-white transition hover:text-slate-200"
+                    >
+                      {response.phone}
+                    </button>
+                  ) : (
+                    <span className="text-slate-500">Sem telefone</span>
+                  )}
+                  {response.email ? (
+                    <span className="text-slate-400"> | {response.email}</span>
+                  ) : null}
                 </span>
                 <span className="text-slate-300 capitalize">
                   {response.level}
@@ -152,6 +221,48 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {showWhatsappPicker && selectedResponse ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4">
+          <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-6 text-white">
+            <h2 className="text-lg font-semibold">
+              Abrir conversa no WhatsApp
+            </h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Escolha qual versao do WhatsApp usar para falar com{
+                " "
+              }
+              <span className="font-semibold text-white">
+                {selectedResponse.name}
+              </span>
+              . O PDF sera baixado em seguida para anexar.
+            </p>
+            <div className="mt-6 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => handleWhatsappChoice(false)}
+                className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
+              >
+                WhatsApp normal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleWhatsappChoice(true)}
+                className="rounded-full border border-slate-600 px-6 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-300"
+              >
+                WhatsApp Business
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowWhatsappPicker(false)}
+                className="rounded-full border border-slate-700 px-6 py-2 text-sm font-semibold text-slate-400 transition hover:border-slate-500"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
