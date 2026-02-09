@@ -190,11 +190,11 @@ export default function QuizRunner({ quiz }: Props) {
     return (
       <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
         <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
-          Obrigado! Seu relatório personalizado está em preparação.
+          Obrigado! Seu relatorio esta em preparacao.
         </h2>
         <p className="mt-4 text-sm text-slate-600 sm:text-base">
-          Nossa equipe enviará o relatório completo em breve para o contato
-          informado.
+          Quando o relatorio estiver completo, nossa equipe entrara em contato
+          para enviar.
         </p>
       </div>
     );
@@ -204,10 +204,10 @@ export default function QuizRunner({ quiz }: Props) {
     return (
       <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
         <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
-          Relatório reservado
+          Relatorio em processamento
         </h2>
         <p className="mt-2 text-sm text-slate-600 sm:text-base">
-          Seu resultado completo está pronto, mas só é liberado com o contato.
+          Seu relatorio esta sendo finalizado. Preencha seus dados para receber.
         </p>
 
         <div className="relative mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
@@ -220,17 +220,18 @@ export default function QuizRunner({ quiz }: Props) {
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white">
-              Relatório bloqueado
+              Relatorio em processamento
             </div>
           </div>
         </div>
 
         <div className="mt-8">
           <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
-            Desbloquear relatório
+            Complete seus dados
           </h3>
           <p className="mt-1 text-sm text-slate-600 sm:text-base">
-            Informe seu contato para liberar o relatório completo no WhatsApp.
+            Quando o relatorio for completo, nossa equipe entrara em contato
+            para enviar.
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -275,7 +276,7 @@ export default function QuizRunner({ quiz }: Props) {
             disabled={loading}
             className="mt-6 w-full rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? "Enviando..." : "Quero meu relatório"}
+            {loading ? "Enviando..." : "Enviar dados"}
           </button>
         </div>
       </div>
