@@ -26,7 +26,6 @@ export default function QuizRunner({ quiz }: Props) {
   const [flow, setFlow] = useState<QuizQuestion[]>([quiz.questionPool[0]]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -143,8 +142,9 @@ export default function QuizRunner({ quiz }: Props) {
       return;
     }
 
-    if (!email.trim() && !phone.trim()) {
-      setError("Informe seu email ou telefone para receber o relatório.");
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 11) {
+      setError("Informe um telefone válido com DDD. Ex: (13) 99722-3066");
       return;
     }
 
@@ -164,8 +164,7 @@ export default function QuizRunner({ quiz }: Props) {
         body: JSON.stringify({
           quizId: quiz.id,
           name: name.trim(),
-          email: email.trim() || null,
-          phone: phone.trim() || null,
+          phone: phone.replace(/\D/g, ""),
           responses,
         }),
       });
@@ -277,22 +276,26 @@ export default function QuizRunner({ quiz }: Props) {
               />
             </label>
             <label className="flex flex-col text-sm font-medium text-slate-700">
-              Telefone
+              WhatsApp (para receber seu relatório)
               <input
                 value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                onChange={(event) => {
+                  const raw = event.target.value.replace(/\D/g, "").slice(0, 11);
+                  let formatted = raw;
+                  if (raw.length > 6) {
+                    formatted = `(${raw.slice(0, 2)}) ${raw.slice(2, 7)}-${raw.slice(7)}`;
+                  } else if (raw.length > 2) {
+                    formatted = `(${raw.slice(0, 2)}) ${raw.slice(2)}`;
+                  } else if (raw.length > 0) {
+                    formatted = `(${raw}`;
+                  }
+                  setPhone(formatted);
+                }}
+                inputMode="tel"
                 className="mt-2 rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none"
-                placeholder="(00) 00000-0000"
+                placeholder="(13) 99722-3066"
               />
-            </label>
-            <label className="flex flex-col text-sm font-medium text-slate-700 sm:col-span-2">
-              Email
-              <input
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="mt-2 rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none"
-                placeholder="seuemail@email.com"
-              />
+              <span className="mt-1 text-xs text-slate-500">Nosso time entrará em contato por esse WhatsApp para enviar seu relatório.</span>
             </label>
           </div>
 

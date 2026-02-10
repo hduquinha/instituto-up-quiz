@@ -9,8 +9,7 @@ export const runtime = "nodejs";
 type SubmitPayload = {
   quizId: string;
   name: string;
-  email?: string | null;
-  phone?: string | null;
+  phone: string;
   responses: { id: string; value: number }[];
 };
 
@@ -48,9 +47,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!body.name || (!body.email && !body.phone)) {
+    const phoneDigits = (body.phone || "").replace(/\D/g, "");
+    if (!body.name || phoneDigits.length < 10 || phoneDigits.length > 11) {
       return NextResponse.json(
-        { message: "Nome e contato são obrigatórios." },
+        { message: "Nome e telefone (WhatsApp) válido são obrigatórios." },
         { status: 400 }
       );
     }
@@ -117,8 +117,8 @@ export async function POST(request: Request) {
         id,
         quiz.id,
         body.name.trim(),
-        body.email?.trim() || null,
-        body.phone?.trim() || null,
+        null,
+        phoneDigits,
         JSON.stringify(body.responses),
         score,
         level,
