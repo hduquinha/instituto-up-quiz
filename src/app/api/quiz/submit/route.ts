@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import nodemailer from "nodemailer";
 import { ensureSchema, pool } from "@/lib/db";
 import { buildReport, calculateScore, getLevel } from "@/lib/quiz-engine";
 import { getQuizById } from "@/lib/quizzes";
@@ -13,16 +12,6 @@ type SubmitPayload = {
   email?: string | null;
   phone?: string | null;
   responses: { id: string; value: number }[];
-};
-
-type NotificationPayload = {
-  name: string;
-  email: string | null;
-  phone: string | null;
-  score: number;
-  level: string;
-  quizTitle: string;
-  createdAt: string;
 };
 
 const isValidResponses = (
@@ -39,56 +28,6 @@ const isValidResponses = (
       item.value >= 0 &&
       item.value <= 4
   );
-
-const getAdminUrl = () =>
-  process.env.ADMIN_DASHBOARD_URL ||
-  "https://instituto-up-quiz.vercel.app/admin";
-
-const buildNotificationText = (payload: NotificationPayload) => {
-  const contactLines = [
-    payload.email ? `Email: ${payload.email}` : null,
-    payload.phone ? `Telefone: ${payload.phone}` : null,
-  ].filter(Boolean);
-
-  return [
-    "Nova resposta recebida",
-    "",
-    `Nome: ${payload.name}`,
-    ...contactLines,
-    `Quiz: ${payload.quizTitle}`,
-    `Data: ${payload.createdAt}`,
-    "",
-    `Admin: ${getAdminUrl()}`,
-  ].join("\n");
-};
-
-const sendNotificationEmail = async (payload: NotificationPayload) => {
-  const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const to = process.env.NOTIFY_EMAIL_TO || "leonardokiorra12@gmail.com";
-  const from = process.env.NOTIFY_EMAIL_FROM || user;
-
-  if (!host || !port || !user || !pass || !from) {
-    console.warn("Email nao configurado. Defina SMTP_* para enviar aviso.");
-    return;
-  }
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port: Number(port),
-    secure: Number(port) === 465,
-    auth: { user, pass },
-  });
-
-  await transporter.sendMail({
-    to,
-    from,
-    subject: `Novo quiz: ${payload.name}`,
-    text: buildNotificationText(payload),
-  });
-};
 
 export async function POST(request: Request) {
   try {
@@ -187,22 +126,7 @@ export async function POST(request: Request) {
       ]
     );
 
-    const createdAt = new Date().toLocaleString("pt-BR");
-    try {
-      await sendNotificationEmail({
-        name: body.name.trim(),
-        email: body.email?.trim() || null,
-        phone: body.phone?.trim() || null,
-        score,
-        level,
-        quizTitle: quiz.title,
-        createdAt,
-      });
-    } catch (notifyError) {
-      console.error("Falha ao enviar notificacao:", notifyError);
-    }
-
-    return NextResponse.json({ id });
+    return NextResponse.json({ id, level, quizTitle: quiz.title });
   } catch (error) {
     console.error("Erro ao salvar respostas do quiz:", error);
     return NextResponse.json(
