@@ -1,12 +1,14 @@
-# Quiz inteligente - Ansiedade
+# Questionários Inteligentes - Instituto UP
 
-Aplicação de quiz gamificado com relatório personalizado, captura de contato e painel administrativo protegido por senha. Tudo serverless e pronto para Vercel.
+Aplicação de questionários adaptativos com relatório personalizado, captura de contato e painel administrativo protegido por senha. Tudo serverless e pronto para Vercel.
 
 ## Recursos
 
-- Quiz de ansiedade com 12 perguntas em passos.
-- Resumo imediato e relatório completo enviado para a equipe.
-- Página administrativa com senha para ver respostas e baixar relatórios.
+- Questionário de ansiedade com 5 perguntas adaptativas.
+- Questionário de comunicação e oratória com 5 perguntas adaptativas.
+- Motor adaptativo que seleciona perguntas com base nas respostas anteriores.
+- Resumo imediato e relatório completo enviado por WhatsApp.
+- Página administrativa com senha para ver respostas e baixar relatórios em PDF.
 - Armazenamento em PostgreSQL.
 
 ## Configuração
@@ -29,8 +31,10 @@ npm run dev
 ## Rotas principais
 
 - / -> página inicial
-- /quiz/ansiedade -> quiz de ansiedade
-- /quiz -> lista de quizzes
+- /questionario/ansiedade -> questionário de ansiedade
+- /questionario/comunicacao -> questionário de comunicação e oratória
+- /questionario/vendas -> questionário de vendas e negociação
+- /questionario -> lista de questionários
 - /admin -> painel administrativo
 
 ## Banco de dados

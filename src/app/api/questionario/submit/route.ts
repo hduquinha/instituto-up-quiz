@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     if (!quiz) {
       return NextResponse.json(
-        { message: "Quiz não encontrado." },
+        { message: "Questionário não encontrado." },
         { status: 404 }
       );
     }
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ id, level, quizTitle: quiz.title });
   } catch (error) {
-    console.error("Erro ao salvar respostas do quiz:", error);
+    console.error("Erro ao salvar respostas do questionário:", error);
     return NextResponse.json(
       { message: "Não foi possível salvar suas respostas." },
       { status: 500 }

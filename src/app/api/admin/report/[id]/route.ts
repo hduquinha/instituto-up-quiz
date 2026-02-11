@@ -50,7 +50,11 @@ export async function GET(request: Request, { params }: Params) {
   const name = rows[0].name as string;
   const score = Number(rows[0].score) || 0;
   const quizId = String(rows[0].quiz_id || "ansiedade");
-  const quiz = getQuizById(quizId);
+
+  /* Questionários abertos têm quiz_id prefixado com "aberto-" */
+  const isOpen = quizId.startsWith("aberto-");
+  const realQuizId = isOpen ? quizId.replace("aberto-", "") : quizId;
+  const quiz = getQuizById(realQuizId);
 
   if (!quiz) {
     return NextResponse.json(
@@ -62,6 +66,28 @@ export async function GET(request: Request, { params }: Params) {
   const rawAnswers = rows[0].answers as unknown;
   const parsedAnswers =
     typeof rawAnswers === "string" ? JSON.parse(rawAnswers) : rawAnswers;
+
+  /* Para questionários abertos, gerar PDF com o relatório de texto salvo */
+  if (isOpen) {
+    const reportText = rows[0].report as string;
+    const { generateOpenReportPdf } = await import("@/lib/report-pdf");
+    const pdf = await generateOpenReportPdf({
+      name,
+      quizTitle: quiz.title,
+      quizId: realQuizId,
+      score,
+      reportText,
+    });
+
+    return new Response(new Uint8Array(pdf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename=relatorio-escrito-${
+          name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "quiz"
+        }.pdf`,
+      },
+    });
+  }
 
   const responses = Array.isArray(parsedAnswers)
     ? parsedAnswers.map((item, index) => {
@@ -82,6 +108,7 @@ export async function GET(request: Request, { params }: Params) {
   const pdf = await generateReportPdf({
     name,
     quizTitle: quiz.title,
+    quizId: realQuizId,
     score,
     responses,
     questions,
